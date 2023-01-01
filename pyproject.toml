@@ -10,6 +10,7 @@ packages = [{include = "brownie_bot"}]
 python = "^3.10"
 python-dotenv = "^0.21.0"
 py-cord = "^2.3.2"
+selenium = "^4.7.2"
 
 
 [build-system]
