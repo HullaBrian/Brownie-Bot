@@ -3,11 +3,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 
-async def get_brownie(store_number: str, date: str, time: str, order_id: str, receipt_location: str) -> int:
+async def get_brownie(store_number: str, date: str, time: str, order_id: str, receipt_location: str, request_id: int = 0):
     if len(str(store_number)) != 4:
-        return -1
+        return
     if len(str(order_id)) != 10:
-        return -2
+        return
 
     url = "https://tellslimchickens.smg.com/"
     driver = webdriver.Firefox()
@@ -99,8 +99,9 @@ async def get_brownie(store_number: str, date: str, time: str, order_id: str, re
     driver.find_element(By.CLASS_NAME, value="NextButton").click()
 
     code = driver.find_element(By.CLASS_NAME, value="ValCode").text.split(": ")[1]
-    return int(code)
+    with open("codes.txt", "w") as codes:
+        codes.write(f"{request_id}:{code}")
 
 
 if __name__ == "__main__":
-    print("Code:", get_brownie("0000", "10/12/1997", "1:54 PM", "0000000000", "Drive thru"))
+    get_brownie("0000", "10/12/1997", "1:54 PM", "0000000000", "Drive thru", "TEST")
