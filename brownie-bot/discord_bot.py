@@ -16,6 +16,7 @@ bot = discord.Bot()
 
 context_channel = None
 requests = []
+run_thread = True
 
 
 async def scan_for_codes():
@@ -25,7 +26,7 @@ async def scan_for_codes():
     while context_channel is None:
         time.sleep(1.0)
 
-    while True:
+    while run_thread:
         for request in requests:
             try:
                 await get_brownie_code(request)
@@ -49,6 +50,8 @@ async def get_brownie(ctx, store_number: discord.Option(str), date: discord.Opti
                       order_id: discord.Option(str), receipt_location: discord.Option(str)):
     global requests
 
+    if not run_thread:
+        await ctx.respond("The brownie factory is closed!")
     requests.append(brownie_request(
         store_number=store_number,
         date=date,
@@ -59,6 +62,17 @@ async def get_brownie(ctx, store_number: discord.Option(str), date: discord.Opti
         code=""
     ))
     await ctx.respond(f"Processing your request. Your uuid token is: {requests[-1].uuid}")
+
+
+@bot.slash_command(name="abuse_failsafe", description="Stop abusing stuff smh")
+async def abuse_failsafe(ctx):
+    global run_thread
+
+    if ctx.author.id != 667733198066941972:
+        await ctx.respond("You keep that up and you'll get banned...")
+        return
+    run_thread = False
+    await ctx.respond("Putting a stop to the brownie thieves...")
 
 
 @bot.slash_command(name="help", description="This is the help command...bruh")
