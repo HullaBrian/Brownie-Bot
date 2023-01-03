@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 
 import os
 import time
-from uuid import uuid4
 from threading import Thread
 import asyncio
 
@@ -58,10 +57,9 @@ async def get_brownie(ctx, store_number: discord.Option(str), date: discord.Opti
         time=time,
         order_id=order_id,
         receipt_location=receipt_location,
-        uuid=str(uuid4()),
         code=""
     ))
-    await ctx.respond(f"Processing your request. Your uuid token is: {requests[-1].uuid}")
+    await ctx.respond(f"Processing your request. Please wait...")
 
 
 @bot.slash_command(name="abuse_failsafe", description="Stop abusing stuff smh")

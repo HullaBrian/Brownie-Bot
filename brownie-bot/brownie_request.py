@@ -8,5 +8,4 @@ class brownie_request:
     time: str
     order_id: str
     receipt_location: str
-    uuid: str
     code: str
