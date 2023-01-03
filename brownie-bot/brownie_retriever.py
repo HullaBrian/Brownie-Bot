@@ -1,12 +1,15 @@
+import selenium.common.exceptions
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
+from brownie_request import brownie_request
 
-async def get_brownie(store_number: str, date: str, time: str, order_id: str, receipt_location: str, request_id: int = 0):
-    if len(str(store_number)) != 4:
+
+def get_brownie_code(request: brownie_request):
+    if len(str(request.store_number)) != 4:
         return
-    if len(str(order_id)) != 10:
+    if len(str(request.order_id)) != 10:
         return
 
     url = "https://tellslimchickens.smg.com/"
@@ -15,12 +18,12 @@ async def get_brownie(store_number: str, date: str, time: str, order_id: str, re
 
     # Input details
     store_number_input = driver.find_element(By.NAME, value="InputStoreNum")
-    store_number_input.send_keys(store_number)
+    store_number_input.send_keys(request.store_number)
 
     driver.find_element(By.CLASS_NAME, value="ui-datepicker-trigger").click()  # Open calender widget
-    driver.find_element(By.LINK_TEXT, value=str(date.split("/")[1])).click()
+    driver.find_element(By.LINK_TEXT, value=str(request.date.split("/")[1])).click()
 
-    split_time = time.split(":")
+    split_time = request.time.split(":")
     hour = split_time[0]
     minute = split_time[1].split(" ")[0]
     meridian = split_time[1].split(" ")[1].upper()
@@ -35,7 +38,7 @@ async def get_brownie(store_number: str, date: str, time: str, order_id: str, re
     minute_input.select_by_value(minute)
     meridian_input.select_by_value(meridian)
     order_id_input = driver.find_element(By.NAME, value="InputCheckNum")
-    order_id_input.send_keys(order_id)
+    order_id_input.send_keys(request.order_id)
     # Submit
     driver.find_element(By.NAME, value="NextButton").click()
 
@@ -45,7 +48,7 @@ async def get_brownie(store_number: str, date: str, time: str, order_id: str, re
     highly_satisfied_button.click()
     driver.find_element(By.ID, value="NextButton").click()
 
-    driver.find_element(By.XPATH, value=f"//label[contains(text(), '{receipt_location}')]/preceding-sibling::span[1]").click()
+    driver.find_element(By.XPATH, value=f"//label[contains(text(), '{request.receipt_location}')]/preceding-sibling::span[1]").click()
     driver.find_element(By.CLASS_NAME, value="NextButton").click()
 
     buttons = driver.find_elements(By.XPATH, value='//td[@aria-describedby="HighlySatisfiedNeitherDESC5"]')
@@ -99,9 +102,6 @@ async def get_brownie(store_number: str, date: str, time: str, order_id: str, re
     driver.find_element(By.CLASS_NAME, value="NextButton").click()
 
     code = driver.find_element(By.CLASS_NAME, value="ValCode").text.split(": ")[1]
-    with open("codes.txt", "w") as codes:
-        codes.write(f"{request_id}:{code}")
+    request.code = code
 
-
-if __name__ == "__main__":
-    get_brownie("0000", "10/12/1997", "1:54 PM", "0000000000", "Drive thru", "TEST")
+    driver.close()
