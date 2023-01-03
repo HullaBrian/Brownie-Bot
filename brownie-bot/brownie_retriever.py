@@ -13,7 +13,9 @@ def get_brownie_code(request: brownie_request):
         return
 
     url = "https://tellslimchickens.smg.com/"
-    driver = webdriver.Firefox()
+    profile = webdriver.FirefoxProfile()
+    profile.set_preference("browser.privatebrowsing.autostart", True)  # Start in private mode
+    driver = webdriver.Firefox(firefox_profile=profile)
     driver.get(url)
 
     # Input details
