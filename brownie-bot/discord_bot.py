@@ -7,6 +7,7 @@ import os
 import time
 from threading import Thread
 import asyncio
+import json
 
 from brownie_retriever import get_brownie_code
 from brownie_retriever import init_browser
@@ -18,6 +19,7 @@ bot = discord.Bot()
 context_channel = None
 requests = []
 run_thread = True
+config = json.load(open("config.json"))
 
 
 async def scan_for_codes():
@@ -57,7 +59,7 @@ async def scan_for_codes():
 async def on_ready():
     logger.info(f"{bot.user} is ready and online!")
     global context_channel
-    context_channel = bot.get_channel(1059632951022854204)
+    context_channel = bot.get_channel(config["context channel"])
 
 
 @bot.slash_command(name="get_brownie", description="Fill out online servey for free brownies!")
@@ -82,7 +84,7 @@ async def get_brownie(ctx, store_number: discord.Option(str), date: discord.Opti
 async def abuse_failsafe(ctx):
     global run_thread
 
-    if ctx.author.id != 667733198066941972:
+    if ctx.author.id != config["admin user-id"]:
         await ctx.respond("You keep that up and you'll get banned...")
         return
     run_thread = False
@@ -93,7 +95,7 @@ async def abuse_failsafe(ctx):
 async def enable(ctx):
     global run_thread
 
-    if ctx.author.id != 667733198066941972:
+    if ctx.author.id != config["admin user-id"]:
         await ctx.respond("Bruh...")
         return
     run_thread = True
