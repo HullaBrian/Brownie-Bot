@@ -1,6 +1,7 @@
 import discord
 import selenium.common.exceptions
 from dotenv import load_dotenv
+from loguru import logger
 
 import os
 import time
@@ -8,6 +9,7 @@ from threading import Thread
 import asyncio
 
 from brownie_retriever import get_brownie_code
+from brownie_retriever import init_browser
 from brownie_request import brownie_request
 
 load_dotenv()  # load all the variables from the env file
@@ -19,27 +21,41 @@ run_thread = True
 
 
 async def scan_for_codes():
-    print("Scanning for codes...")
+    logger.info("[CODE SCANNER]: Started code scanner!")
     global requests
 
     while context_channel is None:
         time.sleep(1.0)
+    logger.info("[CODE SCANNER]: Code scanner is ready to go!")
 
     while run_thread:
         for request in requests:
+            logger.info("[CODE SCANNER]: Registered new request. Handling it...")
             try:
                 await get_brownie_code(request)
+                logger.success("[CODE SCANNER]: Got a new brownie!")
             except TypeError:
+                logger.error("[CODE SCANNER]: Type error occured!")
                 pass
             except (selenium.common.exceptions.NoSuchElementException, selenium.common.exceptions.ElementNotInteractableException):
                 asyncio.run_coroutine_threadsafe(context_channel.send("There was an error processing your request!"), bot.loop)
-            asyncio.run_coroutine_threadsafe(context_channel.send("Code: " + request.code), bot.loop)
+                logger.error("[CODE SCANNER]: An error occurred while retrieving the brownie!")
+            asyncio.run_coroutine_threadsafe(context_channel.send(file=discord.File(open(f"{request.code}", "rb"), filename=f"{request.code}")), bot.loop)
+            logger.success("[CODE SCANNER]: Sent the screenshot in the discord channel!")
+
+            time.sleep(5.0)
+            try:
+                os.remove(f"{request.code}")
+                logger.success("[CODE SCANNER]: Cleaned up screenshot from history!")
+            except PermissionError:
+                logger.warning(f"[CODE SCANNER]: Could not delete '{request.code}'")
             requests.remove(request)
+            logger.info("[CODE SCANNER]: Finished handling request!")
 
 
 @bot.event
 async def on_ready():
-    print(f"{bot.user} is ready and online!")
+    logger.info(f"{bot.user} is ready and online!")
     global context_channel
     context_channel = bot.get_channel(1059632951022854204)
 
@@ -73,6 +89,17 @@ async def abuse_failsafe(ctx):
     await ctx.respond("Putting a stop to the brownie thieves...")
 
 
+@bot.slash_command(name="re-enable_factory", description="Re-enables the brownie functionality.")
+async def enable(ctx):
+    global run_thread
+
+    if ctx.author.id != 667733198066941972:
+        await ctx.respond("Bruh...")
+        return
+    run_thread = True
+    await ctx.respond("Enabled da brownie factory!")
+
+
 @bot.slash_command(name="help", description="This is the help command...bruh")
 async def help(ctx):
     await ctx.respond(
@@ -85,4 +112,5 @@ def middle_man():
 
 code_thread = Thread(target=middle_man, args=(), daemon=True)
 code_thread.start()
+init_browser()
 bot.run(os.getenv("TOKEN"))
