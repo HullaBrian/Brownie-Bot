@@ -10,11 +10,12 @@ from brownie_request import brownie_request
 
 
 url = ""
-driver = None
+profile = None
+options = None
 
 
 def init_browser():
-    global url, driver
+    global url, profile, options
 
     logger.info("Setting up firefox for the bot...")
     url = "https://tellslimchickens.smg.com/"
@@ -26,9 +27,7 @@ def init_browser():
     options = Options()
     options.add_argument("--headless")
     logger.debug("Set firefox to start in headless mode")
-
-    driver = webdriver.Firefox(firefox_profile=profile, options=options)
-    logger.success("Successfully created the webdriver!")
+    logger.success("Loaded profiles and settings for the browser!")
 
 
 def get_brownie_code(request: brownie_request):
@@ -40,6 +39,7 @@ def get_brownie_code(request: brownie_request):
         logger.error(f"Order if is not greater than 10 digits! Was passed a order id of '{request.order_id}' which has a length of {len(request.order_id)}")
         return
 
+    driver = webdriver.Firefox(firefox_profile=profile, options=options)
     driver.get(url)
     logger.debug("Opened survey!")
     logger.debug("Waiting for page to load...")
